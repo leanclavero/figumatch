@@ -35,8 +35,12 @@ export default function TeamSummaryList({ allStickers, ownedStickersMap, userId,
 
   return (
     <div className="space-y-3">
-      {teams.map((team) => {
+      {teams.map((team, index) => {
         const teamStickers = teamsMap[team]
+        
+        // Check if this is the first team starting with its letter for anchoring
+        const firstLetter = team.charAt(0).toUpperCase()
+        const isFirstOfLetter = index === 0 || teams[index - 1].charAt(0).toUpperCase() !== firstLetter
         
         // Strictly sort stickers A-Z alphabetically
         const sortedTeamStickers = [...teamStickers].sort((a, b) => 
@@ -55,7 +59,11 @@ export default function TeamSummaryList({ allStickers, ownedStickersMap, userId,
         const progress = Math.round((ownedInTeam / totalInTeam) * 100)
 
         return (
-          <div key={team} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div 
+            key={team} 
+            id={isFirstOfLetter ? `letter-${firstLetter}` : undefined}
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden scroll-mt-20"
+          >
             <button
               onClick={() => setExpandedTeam(isExpanded ? null : team)}
               className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"

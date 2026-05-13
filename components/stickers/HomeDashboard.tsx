@@ -87,43 +87,42 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
 
       {/* Quick Actions Bar */}
       <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
-        <Link href="/search" className="flex-none bg-blue-600 text-white px-4 py-3 rounded-2xl flex items-center gap-2 text-sm font-bold shadow-lg shadow-blue-100">
-          <PlusCircle size={18} />
-          Cargar Figus
-        </Link>
-        <Link href="/trades" className="flex-none bg-white text-gray-700 px-4 py-3 rounded-2xl flex items-center gap-2 text-sm font-bold border border-gray-100 shadow-sm">
+        <Link href="/trades" className="flex-1 min-w-[140px] bg-white text-gray-700 px-4 py-3 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold border border-gray-100 shadow-sm transition-all active:scale-95">
           <Users size={18} className="text-blue-600" />
           Ver Canjes
         </Link>
       </div>
 
-      {/* Mini Stats Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-          <div className="bg-orange-100 p-2 rounded-lg text-orange-600">
-            <Star size={20} />
-          </div>
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Repetidas</p>
-            <p className="text-xl font-black text-gray-800">{totalDuplicates}</p>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3 overflow-hidden">
-          <div className="bg-purple-100 p-2 rounded-lg text-purple-600">
-            <Users size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Tu Zona</p>
-            <p className="text-sm font-black text-gray-800 truncate">Argentina</p>
-          </div>
-        </div>
-      </div>
-
       {/* Teams Summary List */}
       <section>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-gray-800 tracking-tight">Mi Álbum por Países</h2>
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">A-Z</span>
+        <div className="flex flex-col gap-4 mb-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold text-gray-800 tracking-tight">Mi Álbum por Países</h2>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">A-Z</span>
+          </div>
+          
+          {/* Letter Carousel */}
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
+            {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => {
+              const hasTeams = initialAllStickers.some(s => s.team.startsWith(letter))
+              if (!hasTeams) return null
+              
+              return (
+                <button
+                  key={letter}
+                  onClick={() => {
+                    const element = document.getElementById(`letter-${letter}`)
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  }}
+                  className="flex-none w-10 h-10 bg-white rounded-xl flex items-center justify-center text-sm font-black text-gray-400 border border-gray-100 shadow-sm active:bg-blue-600 active:text-white active:border-blue-600 transition-all"
+                >
+                  {letter}
+                </button>
+              )
+            })}
+          </div>
         </div>
         
         <TeamSummaryList 
