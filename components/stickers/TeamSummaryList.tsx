@@ -22,32 +22,30 @@ interface Props {
 export default function TeamSummaryList({ allStickers, ownedStickersMap, userId, onUpdateCount }: Props) {
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null)
 
-  // Group stickers by team
-  const teamsMap = useMemo(() => {
-    return allStickers.reduce((acc, sticker) => {
-      if (!acc[sticker.team]) {
-        acc[sticker.team] = []
-      }
-      acc[sticker.team].push(sticker)
-      return acc
-    }, {} as Record<string, Sticker[]>)
-  }, [allStickers])
+  // Group stickers by team DYNAMICALLY
+  const teamsMap = allStickers.reduce((acc, sticker) => {
+    if (!acc[sticker.team]) {
+      acc[sticker.team] = []
+    }
+    acc[sticker.team].push(sticker)
+    return acc
+  }, {} as Record<string, Sticker[]>)
 
-  const teams = useMemo(() => Object.keys(teamsMap).sort(), [teamsMap])
+  const teams = Object.keys(teamsMap).sort()
 
   return (
     <div className="space-y-3">
       {teams.map((team) => {
         const teamStickers = teamsMap[team]
-        // Strictly sort stickers A-Z by sticker_number
+        
+        // Strictly sort stickers A-Z alphabetically
         const sortedTeamStickers = [...teamStickers].sort((a, b) => 
-          a.sticker_number.localeCompare(b.sticker_number, undefined, { numeric: true, sensitivity: 'base' })
+          a.sticker_number.localeCompare(b.sticker_number)
         )
         
         const ownedInTeam = teamStickers.filter(s => (ownedStickersMap[s.id] || 0) > 0).length
         const totalInTeam = teamStickers.length
         
-        // Calculate duplicates in this team
         const duplicatesInTeam = teamStickers.reduce((acc, s) => {
           const count = ownedStickersMap[s.id] || 0
           return acc + (count > 1 ? count - 1 : 0)

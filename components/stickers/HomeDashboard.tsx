@@ -20,7 +20,7 @@ interface Props {
 }
 
 export default function HomeDashboard({ initialAllStickers, initialUserStickers, user }: Props) {
-  // Use plain object for guaranteed reactivity
+  // Use plain object for counts
   const [counts, setCounts] = useState<Record<number, number>>(() => {
     const initialMap: Record<number, number> = {}
     initialUserStickers.forEach((us) => {
@@ -28,13 +28,15 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
     })
     return initialMap
   })
+  
+  // VERSION COUNTER: Forces React to re-render everything
+  const [version, setVersion] = useState(0)
 
-  // Calculate stats directly in render for absolute reactivity
+  // STATS: Calculated on EVERY render
   const totalStickers = initialAllStickers.length
   let ownedCount = 0
   let totalDuplicates = 0
 
-  // We iterate over all possible stickers to be sure
   initialAllStickers.forEach(s => {
     const count = counts[s.id] || 0
     if (count > 0) ownedCount++
@@ -44,10 +46,12 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
   const completionPercentage = Math.round((ownedCount / totalStickers) * 100) || 0
 
   const handleUpdateCount = (stickerId: number, newCount: number) => {
-    setCounts(prev => ({
-      ...prev,
-      [stickerId]: newCount
-    }))
+    console.log(`Updating sticker ${stickerId} to ${newCount}`)
+    setCounts(prev => {
+      const next = { ...prev, [stickerId]: newCount }
+      return next
+    })
+    setVersion(v => v + 1)
   }
 
   return (
@@ -57,7 +61,7 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">¡Hola, {user.user_metadata.full_name?.split(' ')[0]}!</h1>
-            <p className="text-blue-100 text-sm opacity-90">Progreso del Mundial 2026</p>
+            <p className="text-blue-100 text-xs opacity-70">v.{version} | {user.email}</p>
           </div>
           <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
             <Trophy className="text-yellow-400" size={24} />
@@ -71,7 +75,7 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
           </div>
           <div className="w-full bg-white/20 h-3 rounded-full overflow-hidden border border-white/10">
             <div 
-              className="bg-yellow-400 h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(250,204,21,0.5)]" 
+              className="bg-yellow-400 h-full rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(250,204,21,0.5)]" 
               style={{ width: `${completionPercentage}%` }}
             />
           </div>
@@ -128,6 +132,7 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
         </div>
         
         <TeamSummaryList 
+          key={`dashboard-v${version}`}
           allStickers={initialAllStickers} 
           ownedStickersMap={counts} 
           userId={user.id}
