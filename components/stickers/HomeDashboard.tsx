@@ -29,9 +29,6 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
     return initialMap
   })
   
-  // VERSION COUNTER: Forces React to re-render everything
-  const [version, setVersion] = useState(0)
-
   // STATS: Calculated on EVERY render
   const totalStickers = initialAllStickers.length
   let ownedCount = 0
@@ -46,12 +43,10 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
   const completionPercentage = Math.round((ownedCount / totalStickers) * 100) || 0
 
   const handleUpdateCount = (stickerId: number, newCount: number) => {
-    console.log(`Updating sticker ${stickerId} to ${newCount}`)
-    setCounts(prev => {
-      const next = { ...prev, [stickerId]: newCount }
-      return next
-    })
-    setVersion(v => v + 1)
+    setCounts(prev => ({
+      ...prev,
+      [stickerId]: newCount
+    }))
   }
 
   return (
@@ -61,7 +56,7 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">¡Hola, {user.user_metadata.full_name?.split(' ')[0]}!</h1>
-            <p className="text-blue-100 text-xs opacity-70">v.{version} | {user.email}</p>
+            <p className="text-blue-100 text-[10px] opacity-70 font-medium tracking-widest uppercase">{user.email}</p>
           </div>
           <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
             <Trophy className="text-yellow-400" size={24} />
@@ -132,7 +127,6 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
         </div>
         
         <TeamSummaryList 
-          key={`dashboard-v${version}`}
           allStickers={initialAllStickers} 
           ownedStickersMap={counts} 
           userId={user.id}
