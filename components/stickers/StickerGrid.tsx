@@ -49,65 +49,55 @@ export default function StickerGrid({ stickers, userStickers, userId }: Props) {
     }
   }
 
-  // Group stickers by team
-  const teams = Array.from(new Set(stickers.map(s => s.team)))
-
   return (
-    <div className="space-y-8">
-      {teams.map(team => (
-        <div key={team} className="space-y-4">
-          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">{team}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {stickers.filter(s => s.team === team).map(sticker => {
-              const count = counts.get(sticker.id) || 0
-              const isOwned = count > 0
-              const isRare = sticker.rarity !== 'common'
+    <div className="grid grid-cols-3 gap-3">
+      {stickers.map(sticker => {
+        const count = counts.get(sticker.id) || 0
+        const isOwned = count > 0
+        const isRare = sticker.rarity !== 'common'
 
-              return (
-                <div 
-                  key={sticker.id}
-                  className={`relative p-4 rounded-2xl border-2 transition-all ${
-                    isOwned 
-                      ? 'bg-white border-blue-100 shadow-sm' 
-                      : 'bg-gray-50 border-transparent grayscale opacity-60'
-                  } ${isRare && isOwned ? 'ring-2 ring-yellow-400 ring-offset-2' : ''}`}
-                >
-                  <div className="flex flex-col gap-1 mb-4">
-                    <span className="text-[10px] font-bold text-blue-600">{sticker.sticker_number}</span>
-                    <p className="text-xs font-bold text-gray-800 line-clamp-1">
-                      {sticker.player_name || 'Desconocido'}
-                    </p>
-                  </div>
+        return (
+          <div 
+            key={sticker.id}
+            className={`relative p-3 rounded-xl border-2 transition-all flex flex-col ${
+              isOwned 
+                ? 'bg-white border-blue-100 shadow-sm' 
+                : 'bg-gray-100 border-transparent grayscale opacity-50'
+            } ${isRare && isOwned ? 'ring-1 ring-yellow-400 ring-offset-1' : ''}`}
+          >
+            <div className="flex flex-col gap-0.5 mb-2">
+              <span className="text-[9px] font-black text-blue-600 leading-none">{sticker.sticker_number}</span>
+              <p className="text-[10px] font-bold text-gray-800 line-clamp-1 leading-tight">
+                {sticker.player_name?.split(' ').pop() || 'Figu'}
+              </p>
+            </div>
 
-                  <div className="flex items-center justify-between mt-auto">
-                    <button 
-                      onClick={() => updateCount(sticker.id, -1)}
-                      className="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className={`text-sm font-bold ${count > 1 ? 'text-orange-600' : 'text-gray-800'}`}>
-                      {count}
-                    </span>
-                    <button 
-                      onClick={() => updateCount(sticker.id, 1)}
-                      className="p-1.5 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
+            <div className="flex items-center justify-between mt-auto gap-1">
+              <button 
+                onClick={() => updateCount(sticker.id, -1)}
+                className="p-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+              >
+                <Minus size={10} />
+              </button>
+              <span className={`text-xs font-black ${count > 1 ? 'text-orange-600' : 'text-gray-800'}`}>
+                {count}
+              </span>
+              <button 
+                onClick={() => updateCount(sticker.id, 1)}
+                className="p-1 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+              >
+                <Plus size={10} />
+              </button>
+            </div>
 
-                  {isRare && (
-                    <div className="absolute -top-2 -right-2 bg-yellow-400 p-1 rounded-full shadow-md">
-                      <StarBadge />
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+            {isRare && (
+              <div className="absolute -top-1 -right-1 bg-yellow-400 p-0.5 rounded-full shadow-sm">
+                <StarBadge />
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
