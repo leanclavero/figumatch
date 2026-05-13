@@ -16,22 +16,20 @@ interface Props {
   stickers: Sticker[]
   userStickers: Map<number, number>
   userId: string
+  onUpdateCount: (stickerId: number, newCount: number) => void
 }
 
-export default function StickerGrid({ stickers, userStickers, userId }: Props) {
-  const [counts, setCounts] = useState<Map<number, number>>(userStickers)
+export default function StickerGrid({ stickers, userStickers, userId, onUpdateCount }: Props) {
   const supabase = createClient()
 
   const updateCount = async (stickerId: number, delta: number) => {
-    const currentCount = counts.get(stickerId) || 0
+    const currentCount = userStickers.get(stickerId) || 0
     const newCount = Math.max(0, currentCount + delta)
     
     if (newCount === currentCount) return
 
-    // Optimistic update
-    const newMap = new Map(counts)
-    newMap.set(stickerId, newCount)
-    setCounts(newMap)
+    // Notify parent immediately for reactive UI
+    onUpdateCount(stickerId, newCount)
 
     const { error } = await supabase
       .from('user_stickers')
@@ -43,16 +41,15 @@ export default function StickerGrid({ stickers, userStickers, userId }: Props) {
 
     if (error) {
       console.error('Error updating sticker count:', error)
-      // Rollback
-      const rollbackMap = new Map(counts)
-      setCounts(rollbackMap)
+      // Rollback parent state
+      onUpdateCount(stickerId, currentCount)
     }
   }
 
   return (
     <div className="grid grid-cols-3 gap-3">
       {stickers.map(sticker => {
-        const count = counts.get(sticker.id) || 0
+        const count = userStickers.get(sticker.id) || 0
         const isOwned = count > 0
         const isRare = sticker.rarity !== 'common'
 
