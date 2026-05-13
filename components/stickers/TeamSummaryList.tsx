@@ -14,7 +14,7 @@ interface Sticker {
 
 interface Props {
   allStickers: Sticker[]
-  ownedStickersMap: Map<number, number>
+  ownedStickersMap: Record<number, number>
   userId: string
   onUpdateCount: (stickerId: number, newCount: number) => void
 }
@@ -44,12 +44,12 @@ export default function TeamSummaryList({ allStickers, ownedStickersMap, userId,
           a.sticker_number.localeCompare(b.sticker_number, undefined, { numeric: true, sensitivity: 'base' })
         )
         
-        const ownedInTeam = teamStickers.filter(s => (ownedStickersMap.get(s.id) || 0) > 0).length
+        const ownedInTeam = teamStickers.filter(s => (ownedStickersMap[s.id] || 0) > 0).length
         const totalInTeam = teamStickers.length
         
         // Calculate duplicates in this team
         const duplicatesInTeam = teamStickers.reduce((acc, s) => {
-          const count = ownedStickersMap.get(s.id) || 0
+          const count = ownedStickersMap[s.id] || 0
           return acc + (count > 1 ? count - 1 : 0)
         }, 0)
 

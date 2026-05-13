@@ -14,7 +14,7 @@ interface Sticker {
 
 interface Props {
   stickers: Sticker[]
-  userStickers: Map<number, number>
+  userStickers: Record<number, number>
   userId: string
   onUpdateCount: (stickerId: number, newCount: number) => void
 }
@@ -23,7 +23,7 @@ export default function StickerGrid({ stickers, userStickers, userId, onUpdateCo
   const supabase = createClient()
 
   const updateCount = async (stickerId: number, delta: number) => {
-    const currentCount = userStickers.get(stickerId) || 0
+    const currentCount = userStickers[stickerId] || 0
     const newCount = Math.max(0, currentCount + delta)
     
     if (newCount === currentCount) return
@@ -49,7 +49,7 @@ export default function StickerGrid({ stickers, userStickers, userId, onUpdateCo
   return (
     <div className="grid grid-cols-3 gap-3">
       {stickers.map(sticker => {
-        const count = userStickers.get(sticker.id) || 0
+        const count = userStickers[sticker.id] || 0
         const isOwned = count > 0
         const isRare = sticker.rarity !== 'common'
 

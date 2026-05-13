@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Trophy, Users, Star, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import TeamSummaryList from '@/components/stickers/TeamSummaryList'
@@ -20,36 +20,34 @@ interface Props {
 }
 
 export default function HomeDashboard({ initialAllStickers, initialUserStickers, user }: Props) {
-  // Global state for sticker counts
-  const [counts, setCounts] = useState<Map<number, number>>(
-    new Map(initialUserStickers.map((us) => [us.sticker_id, us.count]))
-  )
-
-  // Memoized stats calculation
-  const stats = useMemo(() => {
-    const totalStickers = initialAllStickers.length
-    let ownedCount = 0
-    let totalDuplicates = 0
-
-    counts.forEach((count) => {
-      if (count > 0) ownedCount++
-      if (count > 1) totalDuplicates += (count - 1)
+  // Use plain object for guaranteed reactivity
+  const [counts, setCounts] = useState<Record<number, number>>(() => {
+    const initialMap: Record<number, number> = {}
+    initialUserStickers.forEach((us) => {
+      initialMap[us.sticker_id] = us.count
     })
+    return initialMap
+  })
 
-    const completionPercentage = Math.round((ownedCount / totalStickers) * 100) || 0
+  // Calculate stats directly in render for absolute reactivity
+  const totalStickers = initialAllStickers.length
+  let ownedCount = 0
+  let totalDuplicates = 0
 
-    return {
-      totalStickers,
-      ownedCount,
-      totalDuplicates,
-      completionPercentage
-    }
-  }, [counts, initialAllStickers])
+  // We iterate over all possible stickers to be sure
+  initialAllStickers.forEach(s => {
+    const count = counts[s.id] || 0
+    if (count > 0) ownedCount++
+    if (count > 1) totalDuplicates += (count - 1)
+  })
+
+  const completionPercentage = Math.round((ownedCount / totalStickers) * 100) || 0
 
   const handleUpdateCount = (stickerId: number, newCount: number) => {
-    const newMap = new Map(counts)
-    newMap.set(stickerId, newCount)
-    setCounts(newMap)
+    setCounts(prev => ({
+      ...prev,
+      [stickerId]: newCount
+    }))
   }
 
   return (
@@ -69,20 +67,20 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
         <div className="space-y-2">
           <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
             <span>Álbum Completo</span>
-            <span>{stats.completionPercentage}%</span>
+            <span>{completionPercentage}%</span>
           </div>
           <div className="w-full bg-white/20 h-3 rounded-full overflow-hidden border border-white/10">
             <div 
               className="bg-yellow-400 h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(250,204,21,0.5)]" 
-              style={{ width: `${stats.completionPercentage}%` }}
+              style={{ width: `${completionPercentage}%` }}
             />
           </div>
           <div className="flex justify-between items-center">
             <p className="text-[10px] text-blue-100 font-medium">
-              {stats.ownedCount} de {stats.totalStickers} únicas
+              {ownedCount} de {totalStickers} únicas
             </p>
             <p className="text-[10px] text-yellow-300 font-bold">
-              {stats.totalDuplicates} repetidas totales
+              {totalDuplicates} repetidas totales
             </p>
           </div>
         </div>
@@ -108,7 +106,7 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
           </div>
           <div>
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Repetidas</p>
-            <p className="text-xl font-black text-gray-800">{stats.totalDuplicates}</p>
+            <p className="text-xl font-black text-gray-800">{totalDuplicates}</p>
           </div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3 overflow-hidden">
