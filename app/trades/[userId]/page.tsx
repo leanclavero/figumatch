@@ -44,14 +44,20 @@ export default async function TradePage({ params }: Props) {
     .eq('user_id', currentUser.id)
 
   // Fetch Target User Profile info
-  const { data: targetProfile } = await supabase
+  const { data: targetProfile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', targetUserId)
     .single()
 
+  console.log('Trade Page Debug:', {
+    targetUserId,
+    foundProfile: !!targetProfile,
+    profileError
+  })
+
   // Fallback name if profile is missing
-  const displayName = targetProfile?.full_name || 'Usuario Test'
+  const displayName = targetProfile?.full_name || 'Coleccionista'
 
   return (
     <div className="flex flex-col gap-6 pb-20">
@@ -64,6 +70,7 @@ export default async function TradePage({ params }: Props) {
 
       <TradeComparison 
         targetUserName={displayName}
+        targetUserId={targetUserId}
         allStickers={allStickers || []}
         targetInventory={targetUserStickers || []}
         myInventory={currentUserStickers || []}
