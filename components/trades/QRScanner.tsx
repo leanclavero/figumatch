@@ -28,7 +28,10 @@ export default function QRScanner({ isOpen, onClose }: Props) {
             fps: 10, 
             qrbox: { width: 250, height: 250 },
             rememberLastUsedCamera: true,
-            supportedScanTypes: [0] // 0 = QR_CODE
+            supportedScanTypes: [0], // 0 = QR_CODE
+            videoConstraints: {
+              facingMode: "environment"
+            }
           },
           /* verbose= */ false
         )

@@ -26,7 +26,7 @@ export default function BottomNav() {
     { name: 'Inicio', href: '/', icon: Home },
     { name: 'Buscar', href: '/search', icon: Search },
     { name: 'Canjes', href: '/trades', icon: Repeat },
-    { name: 'Perfil', href: '/profile', icon: User },
+    { name: 'Perfil', href: userId ? `/trades/${userId}` : '/profile', icon: User },
   ]
 
   return (
