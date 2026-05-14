@@ -97,7 +97,12 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
           {/* Letter Carousel - STICKY ANCHOR MENU */}
           <div className="sticky top-0 z-30 -mx-4 px-4 py-3 bg-white border-b border-gray-100 flex gap-2 overflow-x-auto no-scrollbar shadow-sm">
             {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => {
-              const hasTeams = initialAllStickers.some(s => getTranslatedTeamName(s.team).toUpperCase().startsWith(letter))
+              // Robust check for both translated and original names
+              const hasTeams = initialAllStickers.some(s => {
+                const translated = getTranslatedTeamName(s.team).toUpperCase();
+                const original = s.team.toUpperCase();
+                return translated.startsWith(letter) || original.startsWith(letter);
+              })
               if (!hasTeams) return null
               
               return (
