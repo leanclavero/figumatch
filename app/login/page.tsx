@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Chrome, Apple, Mail, ArrowRight, Loader2 } from 'lucide-react'
+import { Mail, ArrowRight, Loader2, Calendar } from 'lucide-react'
 
 function LoginForm() {
   const [email, setEmail] = useState('')
@@ -81,9 +81,9 @@ function LoginForm() {
           <button
             onClick={() => handleSocialLogin('google')}
             disabled={!!socialLoading}
-            className="w-full bg-white border-2 border-gray-100 h-16 rounded-[24px] flex items-center justify-center gap-4 text-gray-700 font-bold shadow-sm hover:shadow-md hover:border-blue-100 transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full bg-white border-2 border-gray-100 h-16 rounded-[24px] flex items-center justify-center gap-4 text-gray-700 font-bold shadow-sm hover:border-blue-100 transition-all active:scale-[0.98] disabled:opacity-50"
           >
-            {socialLoading === 'google' ? <Loader2 className="animate-spin" /> : <Chrome className="text-blue-500" />}
+            {socialLoading === 'google' ? <Loader2 className="animate-spin" /> : <GoogleIcon />}
             Continuar con Google
           </button>
 
@@ -92,7 +92,7 @@ function LoginForm() {
             disabled={!!socialLoading}
             className="w-full bg-gray-900 h-16 rounded-[24px] flex items-center justify-center gap-4 text-white font-bold shadow-lg hover:bg-black transition-all active:scale-[0.98] disabled:opacity-50"
           >
-            {socialLoading === 'apple' ? <Loader2 className="animate-spin" /> : <Apple />}
+            {socialLoading === 'apple' ? <Loader2 className="animate-spin" /> : <AppleIcon />}
             Continuar con Apple
           </button>
 
@@ -120,7 +120,7 @@ function LoginForm() {
                   type="email"
                   required
                   placeholder="Tu correo electrónico"
-                  className="w-full h-14 px-6 rounded-[20px] border-2 border-gray-100 focus:border-blue-500 focus:outline-none transition-all font-medium text-gray-800"
+                  className="w-full h-14 px-6 rounded-[20px] border-2 border-gray-100 focus:border-blue-500 focus:outline-none transition-all font-medium text-gray-800 text-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -128,7 +128,7 @@ function LoginForm() {
                   type="password"
                   required
                   placeholder="Tu contraseña"
-                  className="w-full h-14 px-6 rounded-[20px] border-2 border-gray-100 focus:border-blue-500 focus:outline-none transition-all font-medium text-gray-800"
+                  className="w-full h-14 px-6 rounded-[20px] border-2 border-gray-100 focus:border-blue-500 focus:outline-none transition-all font-medium text-gray-800 text-sm"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -176,6 +176,25 @@ function TrophyIcon({ className }: { className?: string }) {
       <path d="M10 22V18" />
       <path d="M14 22V18" />
       <path d="M18 4H6v7a6 6 0 0 0 12 0V4Z" />
+    </svg>
+  )
+}
+
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+    </svg>
+  )
+}
+
+function AppleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+      <path d="M17.05 20.28c-.96.95-2.21 1.72-3.72 1.72-1.45 0-2.05-.84-3.72-.84s-2.3.84-3.72.84c-1.52 0-2.93-1.01-3.95-2.31-2.04-2.6-2.04-6.84 0-9.44 1.02-1.3 2.43-2.11 3.95-2.11 1.41 0 2.1.84 3.72.84s2.31-.84 3.72-.84c1.23 0 2.45.61 3.23 1.54-3.05 1.73-2.56 6.13.44 7.34-.61 1.52-1.61 3.12-3.05 4.3zM12.03 7.25c-.02-2.23 1.84-4.14 3.96-4.25.24 2.46-2.1 4.41-3.96 4.25z" />
     </svg>
   )
 }
