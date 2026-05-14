@@ -77,18 +77,21 @@ export default function FriendsPage() {
     e.preventDefault()
     if (!search.trim()) return
     
+    const cleanSearch = search.trim()
     setLoading(true)
-    // Buscamos coincidencias en nombre o email
+    
+    // Buscamos coincidencias en nombre o email de forma más robusta
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url, email')
-      .or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
+      .or(`email.ilike.%${cleanSearch}%,full_name.ilike.%${cleanSearch}%`)
       .limit(10)
 
     if (error) {
-      console.error('Error en búsqueda:', error)
+      console.error('Error en búsqueda Figumatch:', error)
       setResults([])
     } else {
+      console.log('Resultados encontrados:', data?.length)
       setResults(data || [])
     }
     setLoading(false)
