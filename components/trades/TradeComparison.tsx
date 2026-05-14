@@ -29,14 +29,14 @@ export default function TradeComparison({ targetUserName, allStickers, targetInv
     const targetMap = new Map(targetInventory.map(i => [i.sticker_id, i.count]))
     const myMap = new Map(myInventory.map(i => [i.sticker_id, i.count]))
 
-    // Stickers I HAVE (repeated) that HE NEEDS (0 count)
+    // Stickers I HAVE (repeated) that HE NEEDS (0 count or not in inventory)
     const iGive = allStickers.filter(s => {
       const myCount = myMap.get(s.id) || 0
       const hisCount = targetMap.get(s.id) || 0
       return myCount > 1 && hisCount === 0
     })
 
-    // Stickers HE HAS (repeated) that I NEED (0 count)
+    // Stickers HE HAS (repeated) that I NEED (0 count or not in inventory)
     const heGives = allStickers.filter(s => {
       const hisCount = targetMap.get(s.id) || 0
       const myCount = myMap.get(s.id) || 0
@@ -50,6 +50,15 @@ export default function TradeComparison({ targetUserName, allStickers, targetInv
 
   return (
     <div className="space-y-6">
+      {/* Debug Info (Temporal) */}
+      <div className="bg-red-50 border border-red-100 p-4 rounded-2xl text-[10px] font-mono text-red-600">
+        <p>DEBUG DATA:</p>
+        <p>Mi Inventario: {myInventory.length} items</p>
+        <p>Su Inventario: {targetInventory.length} items</p>
+        <p>Total Stickers: {allStickers.length}</p>
+        <p>Matches: {matches.heGives.length} (Él) / {matches.iGive.length} (Tú)</p>
+      </div>
+
       {/* Target User Info */}
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-[32px] p-6 text-white shadow-xl">
         <div className="flex items-center gap-4">
