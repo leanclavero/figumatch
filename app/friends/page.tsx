@@ -35,6 +35,13 @@ export default function FriendsPage() {
         setUser(user)
         fetchFriends(user.id)
         fetchNotifications(user.id)
+        
+        // DIAGNÓSTICO: Ver si hay perfiles en la DB
+        supabase.from('profiles').select('id', { count: 'exact' }).then(({ count, error }) => {
+          console.log('--- DIAGNÓSTICO FIGUMATCH ---')
+          console.log('Total de perfiles en DB:', count)
+          if (error) console.error('Error leyendo perfiles:', error)
+        })
       }
     })
   }, [supabase.auth])
