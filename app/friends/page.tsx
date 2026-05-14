@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { Search, Share2, UserPlus, Users, ArrowRight, Loader2, Check, Bell, Clock, UserCheck } from 'lucide-react'
+import { Search, Share2, UserPlus, Users, ArrowRight, Loader2, Check, Bell, Clock, UserCheck, Trash2, UserMinus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function FriendsPage() {
@@ -34,13 +34,11 @@ export default function FriendsPage() {
   }
 
   const fetchFriends = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('friendships')
-      .select('*')
+      .select('sender_id, receiver_id')
       .eq('status', 'accepted')
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
-
-    console.log('DEBUG FRIENDSHIPS (accepted):', data?.length, error)
 
     if (data) {
       const ids = data.map(f => f.sender_id === userId ? f.receiver_id : f.sender_id)
@@ -54,13 +52,11 @@ export default function FriendsPage() {
   }
 
   const fetchSentRequests = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('friendships')
-      .select('*')
+      .select('receiver_id')
       .eq('sender_id', userId)
       .eq('status', 'pending')
-
-    console.log('DEBUG SENT REQUESTS (pending):', data?.length, error)
 
     if (data) {
       const ids = data.map(f => f.receiver_id)
@@ -74,13 +70,11 @@ export default function FriendsPage() {
   }
 
   const fetchNotifications = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('notifications')
-      .select('*')
+      .select('*, from_user_id')
       .eq('user_id', userId)
-      .eq('is_read', false)
-
-    console.log('DEBUG NOTIFICATIONS (inbox):', data?.length, error)
+      .order('created_at', { ascending: false })
 
     if (data && data.length > 0) {
       const ids = data.map(n => n.from_user_id)
@@ -114,7 +108,11 @@ export default function FriendsPage() {
     setSendingId(targetUserId)
     const { error } = await supabase.from('friendships').upsert({ sender_id: user.id, receiver_id: targetUserId, status: 'pending' })
     if (!error) {
-      await supabase.from('notifications').insert({ user_id: targetUserId, from_user_id: user.id, type: 'friend_request' })
+      await supabase.from('notifications').insert({ 
+        user_id: targetUserId, 
+        from_user_id: user.id, 
+        type: 'friend_request' 
+      })
       refreshAll(user.id)
       alert('Solicitud enviada')
     }
@@ -123,8 +121,31 @@ export default function FriendsPage() {
 
   const handleAcceptRequest = async (notif: any) => {
     if (!user) return
+    
+    // Aceptar amistad
     await supabase.from('friendships').update({ status: 'accepted' }).match({ sender_id: notif.from_user_id, receiver_id: user.id })
+    
+    // Notificar al emisor que fue aceptado
+    await supabase.from('notifications').insert({
+      user_id: notif.from_user_id,
+      from_user_id: user.id,
+      type: 'request_accepted'
+    })
+
+    // Marcar como leída
     await supabase.from('notifications').update({ is_read: true }).eq('id', notif.id)
+    
+    refreshAll(user.id)
+  }
+
+  const unfriend = async (friendId: string) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar a este amigo?')) return
+    
+    await supabase
+      .from('friendships')
+      .delete()
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${user.id})`)
+    
     refreshAll(user.id)
   }
 
@@ -148,14 +169,33 @@ export default function FriendsPage() {
         </button>
       </section>
 
-      {notifications.length > 0 && (
+      {/* Centro de Notificaciones */}
+      {notifications.filter(n => !n.is_read).length > 0 && (
         <section className="bg-blue-50 border border-blue-100 rounded-2xl p-4 animate-in slide-in-from-top-4">
-          <div className="flex items-center gap-2 mb-3"><Bell size={16} className="text-blue-600" /><h3 className="text-xs font-black text-blue-800 uppercase tracking-widest">Solicitudes Pendientes</h3></div>
+          <div className="flex items-center gap-2 mb-3"><Bell size={16} className="text-blue-600" /><h3 className="text-xs font-black text-blue-800 uppercase tracking-widest">Novedades</h3></div>
           <div className="space-y-2">
-            {notifications.map((notif) => (
+            {notifications.filter(n => !n.is_read).map((notif) => (
               <div key={notif.id} className="bg-white p-3 rounded-xl flex items-center justify-between shadow-sm border border-blue-100">
-                <p className="text-sm font-bold text-gray-700"><span className="text-blue-600 font-black">{notif.sender_name}</span> quiere ser tu amigo</p>
-                <button onClick={() => handleAcceptRequest(notif)} className="bg-blue-600 text-white p-2 rounded-lg active:scale-90 transition-all"><Check size={18} /></button>
+                <div className="flex-1">
+                  {notif.type === 'friend_request' ? (
+                    <p className="text-sm font-bold text-gray-700"><span className="text-blue-600 font-black">{notif.sender_name}</span> quiere ser tu amigo</p>
+                  ) : (
+                    <p className="text-sm font-bold text-green-700"><span className="font-black">{notif.sender_name}</span> aceptó tu solicitud 🥳</p>
+                  )}
+                </div>
+                {notif.type === 'friend_request' ? (
+                  <button onClick={() => handleAcceptRequest(notif)} className="bg-blue-600 text-white p-2 rounded-lg active:scale-90 transition-all"><Check size={18} /></button>
+                ) : (
+                  <button 
+                    onClick={async () => {
+                      await supabase.from('notifications').update({ is_read: true }).eq('id', notif.id)
+                      refreshAll(user.id)
+                    }}
+                    className="text-gray-400 hover:text-gray-600 p-2"
+                  >
+                    <Check size={18} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -206,13 +246,22 @@ export default function FriendsPage() {
           <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest px-2">Mis Amigos</h2>
           <div className="grid gap-3">
             {friends.map((friend) => (
-              <Link key={friend.id} href={`/trades/${friend.id}`} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
-                <div className="flex items-center gap-4">
+              <div key={friend.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all group">
+                <Link href={`/trades/${friend.id}`} className="flex items-center gap-4 flex-1">
                   <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-lg font-bold text-indigo-600">{friend.full_name?.[0]}</div>
                   <div><p className="font-bold text-gray-800">{friend.full_name}</p><p className="text-[10px] text-green-600 font-black uppercase tracking-widest flex items-center gap-1"><UserCheck size={10} /> Amigo</p></div>
+                </Link>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => unfriend(friend.id)}
+                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                    title="Eliminar amigo"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                  <Link href={`/trades/${friend.id}`} className="bg-gray-50 p-2 rounded-xl text-gray-400 group-hover:text-indigo-600 transition-colors"><ArrowRight size={20} /></Link>
                 </div>
-                <div className="bg-gray-50 p-2 rounded-xl text-gray-400"><ArrowRight size={20} /></div>
-              </Link>
+              </div>
             ))}
             {friends.length === 0 && !loading && (
               <div className="bg-white border border-gray-100 rounded-3xl p-10 text-center space-y-3">
