@@ -16,6 +16,10 @@ export default function BottomNav() {
   const [userId, setUserId] = useState<string | null>(null)
   const supabase = createClient()
 
+  if (pathname === '/login' || pathname === '/signup') {
+    return null
+  }
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setUserId(user.id)
