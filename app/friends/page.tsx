@@ -30,6 +30,8 @@ export default function FriendsPage() {
   const supabase = createClient()
 
   useEffect(() => {
+    console.log('%c>>> FIGUMATCH AMIGOS V2 ACTIVE <<<', 'background: #7c3aed; color: white; padding: 10px; font-weight: bold; border-radius: 5px;')
+    
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUser(user)
@@ -38,7 +40,7 @@ export default function FriendsPage() {
         
         // DIAGNÓSTICO: Ver si hay perfiles en la DB
         supabase.from('profiles').select('id', { count: 'exact' }).then(({ count, error }) => {
-          console.log('--- DIAGNÓSTICO FIGUMATCH ---')
+          console.log('--- DIAGNÓSTICO DB ---')
           console.log('Total de perfiles en DB:', count)
           if (error) console.error('Error leyendo perfiles:', error)
         })
