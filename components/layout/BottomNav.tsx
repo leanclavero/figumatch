@@ -2,18 +2,20 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Search, Repeat, User, QrCode, ScanLine, Smartphone } from 'lucide-react'
+import { Home, Search, Repeat, User, QrCode, ScanLine, Smartphone, Menu, Users } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import QRModal from '../trades/QRModal'
 import QRScanner from '../trades/QRScanner'
+import MoreDrawer from './MoreDrawer'
 
 export default function BottomNav() {
   const pathname = usePathname()
   const [showQRMenu, setShowQRMenu] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
   const [showQRScanner, setShowQRScanner] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
+  const [showMoreMenu, setShowMoreMenu] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const supabase = createClient()
 
   if (pathname === '/login' || pathname === '/signup') {
@@ -22,15 +24,15 @@ export default function BottomNav() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setUserId(user.id)
+      if (user) setUser(user)
     })
   }, [supabase.auth])
 
   const navItems = [
     { name: 'Inicio', href: '/', icon: Home },
-    { name: 'Buscar', href: '/search', icon: Search },
-    { name: 'Canjes', href: '/trades', icon: Repeat },
-    { name: 'Perfil', href: userId ? `/trades/${userId}` : '/profile', icon: User },
+    { name: 'Amigos', href: '/trades', icon: Users },
+    { name: 'Perfil', href: user ? `/trades/${user.id}` : '/profile', icon: User },
+    { name: 'Más', href: '#', icon: Menu, onClick: (e: any) => { e.preventDefault(); setShowMoreMenu(true); } },
   ]
 
   return (
@@ -111,6 +113,26 @@ export default function BottomNav() {
           {navItems.slice(2).map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
+            
+            const content = (
+              <>
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-[10px] font-black uppercase tracking-tighter">{item.name}</span>
+              </>
+            )
+
+            if (item.onClick) {
+              return (
+                <button
+                  key={item.name}
+                  onClick={item.onClick}
+                  className="flex flex-col items-center gap-1 min-w-[50px] text-gray-400"
+                >
+                  {content}
+                </button>
+              )
+            }
+
             return (
               <Link
                 key={item.name}
@@ -119,18 +141,17 @@ export default function BottomNav() {
                   isActive ? 'text-blue-600' : 'text-gray-400'
                 }`}
               >
-                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[10px] font-black uppercase tracking-tighter">{item.name}</span>
+                {content}
               </Link>
             )
           })}
         </div>
       </nav>
 
-      {/* Modals */}
-      {userId && (
+      {/* Modals & Drawer */}
+      {user && (
         <QRModal 
-          userId={userId} 
+          userId={user.id} 
           isOpen={showQRModal} 
           onClose={() => setShowQRModal(false)} 
         />
@@ -138,6 +159,11 @@ export default function BottomNav() {
       <QRScanner 
         isOpen={showQRScanner} 
         onClose={() => setShowQRScanner(false)} 
+      />
+      <MoreDrawer 
+        isOpen={showMoreMenu} 
+        onClose={() => setShowMoreMenu(false)} 
+        user={user}
       />
     </>
   )
