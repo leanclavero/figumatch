@@ -42,10 +42,12 @@ export default function TeamSummaryList({ allStickers, ownedStickersMap, userId,
         const firstLetter = team.charAt(0).toUpperCase()
         const isFirstOfLetter = index === 0 || teams[index - 1].charAt(0).toUpperCase() !== firstLetter
         
-        // Strictly sort stickers A-Z alphabetically
-        const sortedTeamStickers = [...teamStickers].sort((a, b) => 
-          a.sticker_number.localeCompare(b.sticker_number)
-        )
+        // Strictly sort stickers NUMERICALLY (ARG1, ARG2, ARG10...)
+        const sortedTeamStickers = [...teamStickers].sort((a, b) => {
+          const numA = parseInt(a.sticker_number.replace(/\D/g, '')) || 0
+          const numB = parseInt(b.sticker_number.replace(/\D/g, '')) || 0
+          return numA - numB
+        })
         
         const ownedInTeam = teamStickers.filter(s => (ownedStickersMap[s.id] || 0) > 0).length
         const totalInTeam = teamStickers.length

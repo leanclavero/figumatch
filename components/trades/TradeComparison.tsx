@@ -31,18 +31,30 @@ export default function TradeComparison({ targetUserName, targetUserId, allStick
     const myMap = new Map(myInventory.map(i => [i.sticker_id, i.count]))
 
     // Stickers I HAVE (repeated) that HE NEEDS (0 count or not in inventory)
-    const iGive = allStickers.filter(s => {
-      const myCount = myMap.get(s.id) || 0
-      const hisCount = targetMap.get(s.id) || 0
-      return myCount > 1 && hisCount === 0
-    })
+    const iGive = allStickers
+      .filter(s => {
+        const myCount = myMap.get(s.id) || 0
+        const hisCount = targetMap.get(s.id) || 0
+        return myCount > 1 && hisCount === 0
+      })
+      .sort((a, b) => {
+        const numA = parseInt(a.sticker_number.replace(/\D/g, '')) || 0
+        const numB = parseInt(b.sticker_number.replace(/\D/g, '')) || 0
+        return numA - numB
+      })
 
     // Stickers HE HAS (repeated) that I NEED (0 count or not in inventory)
-    const heGives = allStickers.filter(s => {
-      const hisCount = targetMap.get(s.id) || 0
-      const myCount = myMap.get(s.id) || 0
-      return hisCount > 1 && myCount === 0
-    })
+    const heGives = allStickers
+      .filter(s => {
+        const hisCount = targetMap.get(s.id) || 0
+        const myCount = myMap.get(s.id) || 0
+        return hisCount > 1 && myCount === 0
+      })
+      .sort((a, b) => {
+        const numA = parseInt(a.sticker_number.replace(/\D/g, '')) || 0
+        const numB = parseInt(b.sticker_number.replace(/\D/g, '')) || 0
+        return numA - numB
+      })
 
     return { iGive, heGives }
   }, [allStickers, targetInventory, myInventory])
@@ -51,16 +63,6 @@ export default function TradeComparison({ targetUserName, targetUserId, allStick
 
   return (
     <div className="space-y-6">
-      {/* Debug Info (Temporal) */}
-      <div className="bg-red-50 border border-red-100 p-4 rounded-2xl text-[10px] font-mono text-red-600">
-        <p>DEBUG DATA:</p>
-        <p>Mi Inventario: {myInventory.length} items</p>
-        <p>Su Inventario: {targetInventory.length} items</p>
-        <p>Total Stickers: {allStickers.length}</p>
-        <p>Matches: {matches.heGives.length} (Él) / {matches.iGive.length} (Tú)</p>
-        <p className="mt-1 opacity-50">Target ID: {targetUserId}</p>
-      </div>
-
       {/* Target User Info */}
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-[32px] p-6 text-white shadow-xl">
         <div className="flex items-center gap-4">
