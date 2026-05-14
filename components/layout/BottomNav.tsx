@@ -3,11 +3,24 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Search, Repeat, User, QrCode, ScanLine, Smartphone } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/utils/supabase/client'
+import QRModal from '../trades/QRModal'
+import QRScanner from '../trades/QRScanner'
 
 export default function BottomNav() {
   const pathname = usePathname()
   const [showQRMenu, setShowQRMenu] = useState(false)
+  const [showQRModal, setShowQRModal] = useState(false)
+  const [showQRScanner, setShowQRScanner] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id)
+    })
+  }, [supabase.auth])
 
   const navItems = [
     { name: 'Inicio', href: '/', icon: Home },
@@ -30,13 +43,25 @@ export default function BottomNav() {
       <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-3 transition-all duration-300 ${
         showQRMenu ? 'scale-100 opacity-100 translate-y-0' : 'scale-50 opacity-0 translate-y-10 pointer-events-none'
       }`}>
-        <button className="bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3 border border-gray-100 active:scale-95 transition-all">
+        <button 
+          onClick={() => {
+            setShowQRMenu(false)
+            setShowQRScanner(true)
+          }}
+          className="bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3 border border-gray-100 active:scale-95 transition-all"
+        >
           <div className="bg-blue-100 p-2 rounded-xl text-blue-600">
             <ScanLine size={20} />
           </div>
           <span className="font-bold text-gray-800">Leer QR</span>
         </button>
-        <button className="bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3 border border-gray-100 active:scale-95 transition-all">
+        <button 
+          onClick={() => {
+            setShowQRMenu(false)
+            setShowQRModal(true)
+          }}
+          className="bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3 border border-gray-100 active:scale-95 transition-all"
+        >
           <div className="bg-purple-100 p-2 rounded-xl text-purple-600">
             <Smartphone size={20} />
           </div>
@@ -97,6 +122,19 @@ export default function BottomNav() {
           })}
         </div>
       </nav>
+
+      {/* Modals */}
+      {userId && (
+        <QRModal 
+          userId={userId} 
+          isOpen={showQRModal} 
+          onClose={() => setShowQRModal(false)} 
+        />
+      )}
+      <QRScanner 
+        isOpen={showQRScanner} 
+        onClose={() => setShowQRScanner(false)} 
+      />
     </>
   )
 }
