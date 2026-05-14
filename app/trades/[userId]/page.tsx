@@ -50,6 +50,9 @@ export default async function TradePage({ params }: Props) {
     .eq('id', targetUserId)
     .single()
 
+  // Fallback name if profile is missing
+  const displayName = targetProfile?.full_name || 'Usuario Test'
+
   return (
     <div className="flex flex-col gap-6 pb-20">
       <div className="flex items-center gap-4">
@@ -60,7 +63,7 @@ export default async function TradePage({ params }: Props) {
       </div>
 
       <TradeComparison 
-        targetUser={targetProfile}
+        targetUserName={displayName}
         allStickers={allStickers || []}
         targetInventory={targetUserStickers || []}
         myInventory={currentUserStickers || []}

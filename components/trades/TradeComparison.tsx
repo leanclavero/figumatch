@@ -17,13 +17,13 @@ interface InventoryItem {
 }
 
 interface Props {
-  targetUser: any
+  targetUserName: string
   allStickers: Sticker[]
   targetInventory: InventoryItem[]
   myInventory: InventoryItem[]
 }
 
-export default function TradeComparison({ targetUser, allStickers, targetInventory, myInventory }: Props) {
+export default function TradeComparison({ targetUserName, allStickers, targetInventory, myInventory }: Props) {
   
   const matches = useMemo(() => {
     const targetMap = new Map(targetInventory.map(i => [i.sticker_id, i.count]))
@@ -58,7 +58,7 @@ export default function TradeComparison({ targetUser, allStickers, targetInvento
           </div>
           <div>
             <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Intercambio con</p>
-            <h2 className="text-xl font-black">{targetUser?.full_name || 'Coleccionista'}</h2>
+            <h2 className="text-xl font-black">{targetUserName}</h2>
           </div>
         </div>
         
