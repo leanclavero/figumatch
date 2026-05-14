@@ -11,7 +11,8 @@ interface Props {
 }
 
 export default async function TradePage({ params }: Props) {
-  const { userId: targetUserId } = params
+  const resolvedParams = await params
+  const { userId: targetUserId } = resolvedParams
   const supabase = await createClient()
 
   const { data: { user: currentUser } } = await supabase.auth.getUser()
