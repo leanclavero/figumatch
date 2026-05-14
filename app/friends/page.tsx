@@ -34,11 +34,13 @@ export default function FriendsPage() {
   }
 
   const fetchFriends = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('friendships')
-      .select('sender_id, receiver_id')
+      .select('*')
       .eq('status', 'accepted')
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+
+    console.log('DEBUG FRIENDSHIPS (accepted):', data?.length, error)
 
     if (data) {
       const ids = data.map(f => f.sender_id === userId ? f.receiver_id : f.sender_id)
@@ -52,11 +54,13 @@ export default function FriendsPage() {
   }
 
   const fetchSentRequests = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('friendships')
-      .select('receiver_id')
+      .select('*')
       .eq('sender_id', userId)
       .eq('status', 'pending')
+
+    console.log('DEBUG SENT REQUESTS (pending):', data?.length, error)
 
     if (data) {
       const ids = data.map(f => f.receiver_id)
@@ -70,11 +74,13 @@ export default function FriendsPage() {
   }
 
   const fetchNotifications = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('notifications')
-      .select('id, from_user_id')
+      .select('*')
       .eq('user_id', userId)
       .eq('is_read', false)
+
+    console.log('DEBUG NOTIFICATIONS (inbox):', data?.length, error)
 
     if (data && data.length > 0) {
       const ids = data.map(n => n.from_user_id)
