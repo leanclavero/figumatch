@@ -87,17 +87,17 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
       </section>
 
       {/* Teams Summary List */}
-      <section>
+      <section className="relative">
         <div className="flex flex-col gap-4 mb-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-gray-800 tracking-tight">Mi Álbum por Países</h2>
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">A-Z</span>
           </div>
           
-          {/* Letter Carousel */}
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
+          {/* Letter Carousel - STICKY ANCHOR MENU */}
+          <div className="sticky top-[72px] z-30 -mx-4 px-4 py-2 bg-gray-50/80 backdrop-blur-md border-y border-gray-100 flex gap-2 overflow-x-auto no-scrollbar shadow-sm">
             {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => {
-              const hasTeams = initialAllStickers.some(s => getTranslatedTeamName(s.team).startsWith(letter))
+              const hasTeams = initialAllStickers.some(s => getTranslatedTeamName(s.team).toUpperCase().startsWith(letter))
               if (!hasTeams) return null
               
               return (
@@ -106,10 +106,19 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
                   onClick={() => {
                     const element = document.getElementById(`letter-${letter}`)
                     if (element) {
-                      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      const offset = 140 // Header + Carousel height
+                      const bodyRect = document.body.getBoundingClientRect().top
+                      const elementRect = element.getBoundingClientRect().top
+                      const elementPosition = elementRect - bodyRect
+                      const offsetPosition = elementPosition - offset
+
+                      window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                      })
                     }
                   }}
-                  className="flex-none w-10 h-10 bg-white rounded-xl flex items-center justify-center text-sm font-black text-gray-400 border border-gray-100 shadow-sm active:bg-blue-600 active:text-white active:border-blue-600 transition-all"
+                  className="flex-none w-10 h-10 bg-white rounded-xl flex items-center justify-center text-sm font-black text-gray-400 border border-gray-100 shadow-sm active:bg-blue-600 active:text-white transition-all"
                 >
                   {letter}
                 </button>
