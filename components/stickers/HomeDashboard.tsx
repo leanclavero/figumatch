@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Trophy, Users, Star, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import TeamSummaryList from '@/components/stickers/TeamSummaryList'
+import { getTranslatedTeamName } from '@/utils/teams'
 
 interface Sticker {
   id: number
@@ -104,7 +105,7 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
           {/* Letter Carousel */}
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
             {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => {
-              const hasTeams = initialAllStickers.some(s => s.team.startsWith(letter))
+              const hasTeams = initialAllStickers.some(s => getTranslatedTeamName(s.team).startsWith(letter))
               if (!hasTeams) return null
               
               return (

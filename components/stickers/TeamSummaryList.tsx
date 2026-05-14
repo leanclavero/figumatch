@@ -4,6 +4,8 @@ import { useState } from 'react'
 import StickerGrid from './StickerGrid'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 
+import { getTranslatedTeamName } from '@/utils/teams'
+
 interface Sticker {
   id: number
   team: string
@@ -31,16 +33,28 @@ export default function TeamSummaryList({ allStickers, ownedStickersMap, userId,
     return acc
   }, {} as Record<string, Sticker[]>)
 
-  const teams = Object.keys(teamsMap).sort()
+  // Custom sort: FIFA first, then Coca Cola, then alphabetical
+  const teams = Object.keys(teamsMap).sort((a, b) => {
+    const nameA = getTranslatedTeamName(a)
+    const nameB = getTranslatedTeamName(b)
+
+    if (a === 'FIFA') return -1
+    if (b === 'FIFA') return 1
+    if (a === 'Coca-Cola' || a === 'Coca Cola') return -1
+    if (b === 'Coca-Cola' || b === 'Coca Cola') return 1
+    
+    return nameA.localeCompare(nameB)
+  })
 
   return (
     <div className="space-y-3">
       {teams.map((team, index) => {
         const teamStickers = teamsMap[team]
+        const translatedName = getTranslatedTeamName(team)
         
-        // Check if this is the first team starting with its letter for anchoring
-        const firstLetter = team.charAt(0).toUpperCase()
-        const isFirstOfLetter = index === 0 || teams[index - 1].charAt(0).toUpperCase() !== firstLetter
+        // Check if this is the first team starting with its translated letter for anchoring
+        const firstLetter = translatedName.charAt(0).toUpperCase()
+        const isFirstOfLetter = index === 0 || getTranslatedTeamName(teams[index - 1]).charAt(0).toUpperCase() !== firstLetter
         
         // Strictly sort stickers NUMERICALLY (ARG1, ARG2, ARG10...)
         const sortedTeamStickers = [...teamStickers].sort((a, b) => {
@@ -76,7 +90,7 @@ export default function TeamSummaryList({ allStickers, ownedStickersMap, userId,
                 </div>
                 <div className="flex-1 text-left">
                   <div className="flex justify-between items-center pr-2">
-                    <h3 className="text-sm font-bold text-gray-800">{team}</h3>
+                    <h3 className="text-sm font-bold text-gray-800">{getTranslatedTeamName(team)}</h3>
                     {duplicatesInTeam > 0 && (
                       <span className="text-[9px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-black">
                         +{duplicatesInTeam}

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { Repeat, CheckCircle2, AlertCircle, TrendingUp, User as UserIcon } from 'lucide-react'
+import { getTranslatedTeamName } from '@/utils/teams'
 
 interface Sticker {
   id: number
@@ -106,7 +107,7 @@ export default function TradeComparison({ targetUserName, targetUserId, allStick
             <div className="grid grid-cols-3 gap-3">
               {matches.heGives.map(s => (
                 <div key={s.id} className="bg-blue-50 border border-blue-100 p-3 rounded-2xl flex flex-col items-center">
-                  <span className="text-[10px] font-black text-blue-600">{s.team}</span>
+                  <span className="text-[10px] font-black text-blue-600">{getTranslatedTeamName(s.team)}</span>
                   <span className="text-sm font-black text-gray-800">{s.sticker_number}</span>
                 </div>
               ))}
@@ -141,7 +142,7 @@ export default function TradeComparison({ targetUserName, targetUserId, allStick
             <div className="grid grid-cols-3 gap-3">
               {matches.iGive.map(s => (
                 <div key={s.id} className="bg-orange-50 border border-orange-100 p-3 rounded-2xl flex flex-col items-center">
-                  <span className="text-[10px] font-black text-orange-600">{s.team}</span>
+                  <span className="text-[10px] font-black text-orange-600">{getTranslatedTeamName(s.team)}</span>
                   <span className="text-sm font-black text-gray-800">{s.sticker_number}</span>
                 </div>
               ))}
