@@ -166,7 +166,7 @@ export default function FriendsPage() {
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl font-black tracking-tight">Comunidad</h1>
-            <p className="text-purple-100 text-[10px] font-bold uppercase tracking-widest opacity-80">Conecta y Canjea</p>
+            <p className="text-purple-100 text-[10px] font-bold uppercase tracking-widest opacity-80">Busca a tus Amigos</p>
           </div>
           <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
             <Users className="text-white" size={24} />
