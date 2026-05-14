@@ -1,7 +1,7 @@
 'use client'
 
 import { QRCodeSVG } from 'qrcode.react'
-import { X, Share2, Copy, Check } from 'lucide-react'
+import { X, Share2, Check } from 'lucide-react'
 import { useState } from 'react'
 
 interface Props {
@@ -14,10 +14,22 @@ export default function QRModal({ userId, isOpen, onClose }: Props) {
   const [copied, setCopied] = useState(false)
   const tradeUrl = `${window.location.origin}/trades/${userId}`
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(tradeUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const handleAction = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Figumatch - Mi Perfil de Canje',
+          text: 'Mira mis figuritas repetidas y las que me faltan para cambiar!',
+          url: tradeUrl
+        })
+      } catch (err) {
+        console.log('Share cancelled or failed')
+      }
+    } else {
+      navigator.clipboard.writeText(tradeUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   if (!isOpen) return null
@@ -32,54 +44,48 @@ export default function QRModal({ userId, isOpen, onClose }: Props) {
       <div className="relative bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 bg-gray-100 rounded-full text-gray-500"
+          className="absolute top-6 right-6 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
         >
           <X size={20} />
         </button>
 
         <div className="text-center space-y-2 mb-8">
-          <h3 className="text-xl font-black text-gray-800">Tu Código Match</h3>
-          <p className="text-sm text-gray-500">Muestra este código para que otros vean qué figuritas pueden intercambiar contigo.</p>
+          <h3 className="text-xl font-black text-gray-800 tracking-tight">Tu Código Match</h3>
+          <p className="text-sm text-gray-500 px-4 leading-relaxed">
+            Muestra este código para que otros vean qué figuritas tienes para canjear.
+          </p>
         </div>
 
-        <div className="bg-blue-50 p-6 rounded-[32px] flex flex-col items-center justify-center border-2 border-blue-100 shadow-inner">
-          <div className="bg-white p-4 rounded-2xl shadow-lg">
+        <div className="bg-blue-50 p-8 rounded-[32px] flex flex-col items-center justify-center border-2 border-blue-100 shadow-inner">
+          <div className="bg-white p-6 rounded-3xl shadow-xl border border-blue-50">
             <QRCodeSVG 
               value={tradeUrl}
-              size={200}
+              size={180}
               level="H"
               includeMargin={false}
               className="rounded-lg"
             />
           </div>
-          <div className="mt-6 w-full bg-white/50 border border-blue-100 rounded-2xl px-4 py-3 flex items-center justify-between">
-            <span className="text-[10px] font-bold text-blue-600 truncate mr-4">
-              {tradeUrl}
-            </span>
-            <button 
-              onClick={handleCopy}
-              className="p-2 bg-blue-600 text-white rounded-lg shadow-md active:scale-95 transition-all"
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-            </button>
-          </div>
         </div>
 
         <div className="mt-8">
           <button 
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: 'Figumatch - Mi Perfil de Canje',
-                  text: 'Mira mis figuritas repetidas y las que me faltan para cambiar!',
-                  url: tradeUrl
-                })
-              }
-            }}
-            className="w-full bg-gray-800 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+            onClick={handleAction}
+            className={`w-full py-4 rounded-2xl font-black flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-all duration-300 ${
+              copied ? 'bg-green-600 text-white' : 'bg-gray-900 text-white hover:bg-gray-800'
+            }`}
           >
-            <Share2 size={20} />
-            Compartir Enlace
+            {copied ? (
+              <>
+                <Check size={20} />
+                ¡Enlace Copiado!
+              </>
+            ) : (
+              <>
+                <Share2 size={20} />
+                Compartir Mi Perfil
+              </>
+            )}
           </button>
         </div>
       </div>
