@@ -30,7 +30,7 @@ export default function BottomNav() {
 
   const navItems = [
     { name: 'Inicio', href: '/', icon: Home },
-    { name: 'Amigos', href: '/trades', icon: Users },
+    { name: 'Amigos', href: '/friends', icon: Users },
     { name: 'Perfil', href: user ? `/trades/${user.id}` : '/profile', icon: User },
     { name: 'Más', href: '#', icon: Menu, onClick: (e: any) => { e.preventDefault(); setShowMoreMenu(true); } },
   ]

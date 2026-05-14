@@ -86,14 +86,6 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
         </div>
       </section>
 
-      {/* Quick Actions Bar */}
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
-        <Link href="/trades" className="flex-1 min-w-[140px] bg-white text-gray-700 px-4 py-3 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold border border-gray-100 shadow-sm transition-all active:scale-95">
-          <Users size={18} className="text-blue-600" />
-          Ver Canjes
-        </Link>
-      </div>
-
       {/* Teams Summary List */}
       <section>
         <div className="flex flex-col gap-4 mb-4">
