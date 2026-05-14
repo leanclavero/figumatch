@@ -95,7 +95,7 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
           </div>
           
           {/* Letter Carousel - STICKY ANCHOR MENU */}
-          <div className="sticky top-[72px] z-30 -mx-4 px-4 py-2 bg-gray-50/80 backdrop-blur-md border-y border-gray-100 flex gap-2 overflow-x-auto no-scrollbar shadow-sm">
+          <div className="sticky top-0 z-30 -mx-4 px-4 py-3 bg-white border-b border-gray-100 flex gap-2 overflow-x-auto no-scrollbar shadow-sm">
             {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => {
               const hasTeams = initialAllStickers.some(s => getTranslatedTeamName(s.team).toUpperCase().startsWith(letter))
               if (!hasTeams) return null
@@ -106,7 +106,7 @@ export default function HomeDashboard({ initialAllStickers, initialUserStickers,
                   onClick={() => {
                     const element = document.getElementById(`letter-${letter}`)
                     if (element) {
-                      const offset = 140 // Header + Carousel height
+                      const offset = 80 // Height of the sticky letter menu
                       const bodyRect = document.body.getBoundingClientRect().top
                       const elementRect = element.getBoundingClientRect().top
                       const elementPosition = elementRect - bodyRect
