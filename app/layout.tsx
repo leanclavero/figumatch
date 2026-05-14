@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/layout/BottomNav";
+import Header from "@/components/layout/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,8 +33,6 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-import Header from "@/components/layout/Header";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -46,7 +45,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col pb-20">
         <Header />
-        <main className="flex-1 overflow-y-auto px-4 py-6">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
         <BottomNav />
