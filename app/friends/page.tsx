@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { Search, Share2, UserPlus, Users, ArrowRight, Loader2, Check, Bell, UserCheck } from 'lucide-react'
+import { Search, Share2, UserPlus, Users, ArrowRight, Loader2, Check, Bell, Clock, UserCheck } from 'lucide-react'
 import Link from 'next/link'
 
 export default function FriendsPage() {
   const [search, setSearch] = useState('')
   const [results, setResults] = useState<any[]>([])
   const [friends, setFriends] = useState<any[]>([])
+  const [sentRequests, setSentRequests] = useState<any[]>([])
   const [notifications, setNotifications] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -22,30 +23,44 @@ export default function FriendsPage() {
       if (user) {
         setUser(user)
         fetchFriends(user.id)
+        fetchSentRequests(user.id)
         fetchNotifications(user.id)
       }
     })
   }, [supabase.auth])
 
   const fetchFriends = async (userId: string) => {
-    // Consulta simplificada para evitar errores de TypeScript en el build
     const { data, error } = await supabase
       .from('friendships')
-      .select('*')
+      .select('*, sender:profiles!friendships_sender_id_fkey(id, full_name, avatar_url), receiver:profiles!friendships_receiver_id_fkey(id, full_name, avatar_url)')
       .eq('status', 'accepted')
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
 
     if (!error && data) {
-      // Por ahora dejamos la lista vacía hasta confirmar que el build pase
-      // Luego recuperaremos los perfiles de estos IDs
-      setFriends([])
+      const friendsList = data.map((f: any) => 
+        f.sender_id === userId ? f.receiver : f.sender
+      )
+      setFriends(friendsList)
+    }
+  }
+
+  const fetchSentRequests = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('friendships')
+      .select('*, receiver:profiles!friendships_receiver_id_fkey(id, full_name, avatar_url)')
+      .eq('sender_id', userId)
+      .eq('status', 'pending')
+
+    if (!error && data) {
+      setSentRequests(data.map((f: any) => f.receiver))
     }
   }
 
   const fetchNotifications = async (userId: string) => {
+    // Obtenemos las notificaciones y los nombres de los remitentes
     const { data, error } = await supabase
       .from('notifications')
-      .select('id, from_user_id')
+      .select('*, sender:profiles!notifications_from_user_id_fkey(full_name)')
       .eq('user_id', userId)
       .eq('is_read', false)
 
@@ -55,16 +70,13 @@ export default function FriendsPage() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!search.trim()) return
-    
     const cleanSearch = search.trim()
     setLoading(true)
-    
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url, email')
       .or(`email.ilike.%${cleanSearch}%,full_name.ilike.%${cleanSearch}%`)
       .limit(10)
-
     if (!error) setResults(data || [])
     setLoading(false)
   }
@@ -87,7 +99,8 @@ export default function FriendsPage() {
         from_user_id: user.id,
         type: 'friend_request'
       })
-      alert('¡Solicitud enviada!')
+      fetchSentRequests(user.id)
+      alert('Solicitud enviada con éxito')
     }
     setSendingId(null)
   }
@@ -106,6 +119,7 @@ export default function FriendsPage() {
 
     fetchFriends(user.id)
     fetchNotifications(user.id)
+    fetchSentRequests(user.id)
   }
 
   const handleShare = () => {
@@ -118,11 +132,12 @@ export default function FriendsPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-20">
+      {/* Comunidad Header */}
       <section className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl p-6 text-white shadow-xl shadow-purple-200">
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl font-black tracking-tight">Comunidad</h1>
-            <p className="text-purple-100 text-[10px] font-bold uppercase tracking-widest opacity-80">Busca a tus Amigos V3</p>
+            <p className="text-purple-100 text-[10px] font-bold uppercase tracking-widest opacity-80">Busca a tus Amigos</p>
           </div>
           <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
             <Users className="text-white" size={24} />
@@ -134,8 +149,9 @@ export default function FriendsPage() {
         </button>
       </section>
 
+      {/* Notifications - Entrantes */}
       {notifications.length > 0 && (
-        <section className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+        <section className="bg-blue-50 border border-blue-100 rounded-2xl p-4 animate-in slide-in-from-top-4">
           <div className="flex items-center gap-2 mb-3">
             <Bell size={16} className="text-blue-600" />
             <h3 className="text-xs font-black text-blue-800 uppercase tracking-widest">Solicitudes Pendientes</h3>
@@ -143,14 +159,19 @@ export default function FriendsPage() {
           <div className="space-y-2">
             {notifications.map((notif) => (
               <div key={notif.id} className="bg-white p-3 rounded-xl flex items-center justify-between shadow-sm border border-blue-100">
-                <p className="text-sm font-bold text-gray-700">Nueva solicitud de amistad</p>
-                <button onClick={() => handleAcceptRequest(notif)} className="bg-blue-600 text-white p-2 rounded-lg"><Check size={18} /></button>
+                <p className="text-sm font-bold text-gray-700">
+                  <span className="text-blue-600 font-black">{notif.sender?.full_name || 'Alguien'}</span> quiere ser tu amigo
+                </p>
+                <button onClick={() => handleAcceptRequest(notif)} className="bg-blue-600 text-white p-2 rounded-lg active:scale-90 transition-all">
+                  <Check size={18} />
+                </button>
               </div>
             ))}
           </div>
         </section>
       )}
 
+      {/* Buscador */}
       <form onSubmit={handleSearch} className="relative">
         <input type="text" placeholder="Busca por nombre o email..." className="w-full bg-white border-2 border-gray-100 h-14 pl-12 pr-4 rounded-2xl focus:border-purple-500 focus:outline-none transition-all font-medium shadow-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -159,33 +180,78 @@ export default function FriendsPage() {
         </button>
       </form>
 
-      <section className="space-y-4">
-        <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest px-2">
-          {results.length > 0 ? 'Resultados de búsqueda' : 'Tus Amigos'}
-        </h2>
-        
-        <div className="grid gap-3">
-          {results.map((profile) => (
-            <div key={profile.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-lg font-bold text-gray-500">{profile.full_name?.[0] || '?'}</div>
-                <div>
-                  <p className="font-bold text-gray-800">{profile.full_name || 'Sin nombre'}</p>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Coleccionista</p>
+      {/* Listas */}
+      <section className="space-y-6">
+        {/* Resultados de búsqueda */}
+        {results.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest px-2">Resultados</h2>
+            <div className="grid gap-3">
+              {results.map((profile) => (
+                <div key={profile.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-lg font-bold text-gray-500">{profile.full_name?.[0] || '?'}</div>
+                    <div>
+                      <p className="font-bold text-gray-800">{profile.full_name || 'Sin nombre'}</p>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Coleccionista</p>
+                    </div>
+                  </div>
+                  {user?.id !== profile.id && (
+                    <button onClick={() => sendFriendRequest(profile.id)} disabled={sendingId === profile.id} className="bg-purple-100 text-purple-600 p-3 rounded-xl hover:bg-purple-600 hover:text-white transition-all">
+                      {sendingId === profile.id ? <Loader2 className="animate-spin" size={20} /> : <UserPlus size={20} />}
+                    </button>
+                  )}
                 </div>
-              </div>
-              {user?.id !== profile.id && (
-                <button onClick={() => sendFriendRequest(profile.id)} disabled={sendingId === profile.id} className="bg-purple-100 text-purple-600 p-3 rounded-xl">
-                  {sendingId === profile.id ? <Loader2 className="animate-spin" size={20} /> : <UserPlus size={20} />}
-                </button>
-              )}
+              ))}
             </div>
-          ))}
-          {results.length === 0 && friends.length === 0 && (
-             <div className="bg-white border border-gray-100 rounded-3xl p-10 text-center space-y-3">
-              <p className="text-gray-400 font-bold text-sm">Busca amigos para empezar.</p>
-             </div>
-          )}
+          </div>
+        )}
+
+        {/* Solicitudes Enviadas (Pendientes) */}
+        {sentRequests.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest px-2">Solicitudes Enviadas</h2>
+            <div className="grid gap-3">
+              {sentRequests.map((friend) => (
+                <div key={friend.id} className="bg-white p-4 rounded-2xl border border-dashed border-gray-200 flex items-center justify-between opacity-70">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-lg font-bold text-gray-300">{friend.full_name?.[0]}</div>
+                    <div>
+                      <p className="font-bold text-gray-500">{friend.full_name}</p>
+                      <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest flex items-center gap-1">
+                        <Clock size={10} /> Pendiente de aceptación
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mis Amigos (Aceptados) */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest px-2">Mis Amigos</h2>
+          <div className="grid gap-3">
+            {friends.map((friend) => (
+              <Link key={friend.id} href={`/trades/${friend.id}`} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-lg font-bold text-indigo-600">{friend.full_name?.[0]}</div>
+                  <div>
+                    <p className="font-bold text-gray-800">{friend.full_name}</p>
+                    <p className="text-[10px] text-green-600 font-black uppercase tracking-widest flex items-center gap-1"><UserCheck size={10} /> Amigo</p>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-2 rounded-xl text-gray-400"><ArrowRight size={20} /></div>
+              </Link>
+            ))}
+            {friends.length === 0 && !loading && (
+              <div className="bg-white border border-gray-100 rounded-3xl p-10 text-center space-y-3">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto"><Users size={32} className="text-gray-200" /></div>
+                <p className="text-gray-400 font-bold text-sm px-10">Busca amigos para empezar a canjear.</p>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>
